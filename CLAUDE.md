@@ -9,9 +9,9 @@ RegexGenerator is a CLI tool that automatically generates optimal regular expres
 ## Architecture Decisions
 
 ### Language Selection
-- **Status**: To be decided based on development preferences
-- **Options**: Python (rich ecosystem), Go (performance, single binary), Rust (memory safety, performance)
-- **Recommendation**: Python for rapid prototyping and ML integration potential
+- **Status**: ✅ **DECIDED - Python 3.11+**
+- **Rationale**: Best balance of algorithm libraries, development speed, and future ML integration
+- **Key Dependencies**: click (CLI), rich (output), numpy/scipy (algorithms), regex (advanced patterns)
 
 ### Core Algorithm Strategy
 - **Phase 1**: Simulated Annealing (easier to implement, good results)
@@ -23,38 +23,42 @@ RegexGenerator is a CLI tool that automatically generates optimal regular expres
 - **Output**: Clean regex to stdout, optional JSON format with metadata
 - **Validation**: Self-testing against provided examples with exit codes
 
-## Key Components
+## Key Components (Python Implementation)
 
 ### 1. Pattern Generator (Core)
-```
-- Simulated Annealing engine
-- Pattern mutation operators
-- Fitness scoring functions
-- Convergence detection
+```python
+# regexgen/algorithms/simulated_annealing.py
+- SA engine with scipy.optimize integration
+- Pattern AST representation and mutation operators
+- Multi-criteria fitness scoring with numpy arrays
+- Convergence detection and early stopping
 ```
 
-### 2. CLI Interface
-```
-- Argument parsing (positive/negative examples)
-- Configuration flags (algorithm, complexity limits, scoring)
-- File input/output handling
-- Progress reporting and error handling
+### 2. CLI Interface  
+```python
+# regexgen/cli/main.py
+- Click-based argument parsing with rich help formatting
+- Configuration dataclasses for type safety
+- File I/O with pathlib and proper encoding handling
+- Rich progress bars and formatted output
 ```
 
 ### 3. Pattern Validation
-```
-- Regex compilation and testing
-- Performance validation (backtracking detection)
-- Example matching verification
-- Scoring and ranking
+```python
+# regexgen/validation/
+- Regex compilation with multiple engines (re, regex module)
+- Backtracking detection via timeout mechanisms
+- Batch example validation with efficient matching
+- Performance profiling and scoring
 ```
 
 ### 4. Optimization Features
-```
-- Multiple scoring functions (minimal, readable, balanced)
-- Complexity bounds and limits
-- Timeout and iteration controls
-- Reproducible results via seed
+```python  
+# regexgen/scoring/
+- Pluggable scoring functions with abstract base classes
+- NumPy-based complexity calculations
+- Timeout controls with threading/multiprocessing
+- Random seed management for reproducibility
 ```
 
 ## Development Standards
@@ -65,11 +69,13 @@ RegexGenerator is a CLI tool that automatically generates optimal regular expres
 - **Performance Tests**: Algorithm efficiency, pattern execution speed
 - **Example Tests**: Common use cases (emails, URLs, IDs)
 
-### Code Quality
-- Follow language-specific style guides
-- Use type hints/annotations where applicable
+### Code Quality (Python-Specific)
+- Follow PEP 8 style guide with black formatter
+- Use type hints with mypy validation
 - Comprehensive error handling with helpful messages
 - Clear separation of concerns (algorithm, CLI, I/O)
+- Use dataclasses for configuration and results
+- Leverage Python 3.11+ features (match statements, improved typing)
 
 ### Documentation Requirements
 - Inline code documentation for complex algorithms
@@ -148,8 +154,15 @@ regexgen [positive_examples...]
 
 Once implemented, run these for quality assurance:
 ```bash
-# Unit tests
-[test_command] tests/
+# Unit tests with pytest
+pytest tests/ -v --cov=regexgen
+
+# Type checking
+mypy regexgen/
+
+# Code formatting
+black regexgen/ tests/
+flake8 regexgen/ tests/
 
 # Integration test examples
 regexgen "test@email.com" "user@domain.org" -n "invalid-email" "no-at-sign"

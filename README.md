@@ -1,6 +1,6 @@
 # RegexGenerator
 
-A smart CLI tool that automatically generates minimal, readable regular expressions from positive and negative examples using advanced optimization algorithms.
+A smart CLI tool written in Python that automatically generates minimal, readable regular expressions from positive and negative examples using advanced optimization algorithms.
 
 ## Overview
 
@@ -48,11 +48,20 @@ regexgen --algorithm sa --max-complexity 50 --scoring balanced --timeout 30s exa
 ## Installation
 
 ```bash
-# Install from source (when ready)
+# Install from source
 git clone https://github.com/Paulchenkiller/regexgenerator
 cd regexgenerator
-[installation steps TBD based on chosen language]
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Install as CLI tool
+pip install -e .
 ```
+
+### Requirements
+- Python 3.11+
+- Dependencies: click, rich, numpy, scipy (for optimization algorithms)
 
 ## Quick Start
 

@@ -2,77 +2,85 @@
 
 Implementation roadmap organized by phases and priorities.
 
-## Phase 1: MVP Implementation
+## Phase 1: MVP Implementation (Python 3.11+)
+
+### Project Setup (HIGH PRIORITY)
+- [ ] **Python Environment Setup**
+  - [ ] Create pyproject.toml with dependencies (click, rich, numpy, scipy, regex)
+  - [ ] Set up src/regexgen package structure
+  - [ ] Configure pytest, mypy, black, flake8
+  - [ ] Set up GitHub Actions CI/CD
+  - [ ] Create requirements.txt and dev-requirements.txt
 
 ### Core Algorithm (HIGH PRIORITY)
-- [ ] **Simulated Annealing Engine**
-  - [ ] Basic SA algorithm implementation
-  - [ ] Pattern mutation operators (character substitution, quantifier changes, etc.)
+- [ ] **Simulated Annealing Engine (regexgen/algorithms/)**
+  - [ ] Basic SA algorithm with scipy.optimize integration
+  - [ ] Pattern mutation operators using regex AST
   - [ ] Temperature scheduling (linear, exponential, adaptive)
   - [ ] Convergence criteria and early stopping
-  - [ ] Pattern fitness scoring function
+  - [ ] Multi-criteria fitness scoring with numpy
 
-- [ ] **Pattern Generation Components**
-  - [ ] Regex AST representation for mutations
+- [ ] **Pattern Generation Components (regexgen/patterns/)**
+  - [ ] Regex AST representation using Python classes/dataclasses
   - [ ] Character class optimization ([abc] vs [a-c])
   - [ ] Quantifier optimization (*, +, {n,m})
   - [ ] Group and alternation handling
-  - [ ] Basic complexity calculation
+  - [ ] Complexity calculation with type hints
 
-- [ ] **Pattern Validation**
-  - [ ] Regex compilation and error handling
+- [ ] **Pattern Validation (regexgen/validation/)**
+  - [ ] Regex compilation with re and regex modules
   - [ ] Positive example matching verification
   - [ ] Negative example rejection verification
-  - [ ] Performance validation (avoid catastrophic backtracking)
+  - [ ] Performance validation using timeout mechanisms
 
 ### CLI Interface (HIGH PRIORITY)
-- [ ] **Argument Parsing**
-  - [ ] Positional arguments for positive examples
-  - [ ] `-n, --negative` flag for negative examples
-  - [ ] `-f, --file` for input file processing
+- [ ] **Click-based Argument Parsing (regexgen/cli/)**
+  - [ ] Positional arguments for positive examples with Click
+  - [ ] `-n, --negative` option for negative examples
+  - [ ] `-f, --file` for input file processing with pathlib
   - [ ] `--negative-file` for negative examples file
-  - [ ] Help text and usage examples
+  - [ ] Rich-formatted help text and usage examples
 
-- [ ] **Configuration Flags**
-  - [ ] `--algorithm` (sa, ga) - default: sa
-  - [ ] `--max-complexity` - limit pattern complexity
-  - [ ] `--max-iterations` - algorithm iteration limit
-  - [ ] `--timeout` - time-based limits
-  - [ ] `--scoring` (minimal, readable, balanced)
-  - [ ] `--seed` - randomness seed for reproducibility
+- [ ] **Configuration with Dataclasses**
+  - [ ] `--algorithm` choice (sa, ga) with enum - default: sa
+  - [ ] `--max-complexity` int - limit pattern complexity
+  - [ ] `--max-iterations` int - algorithm iteration limit
+  - [ ] `--timeout` duration parsing - time-based limits
+  - [ ] `--scoring` choice (minimal, readable, balanced) with enum
+  - [ ] `--seed` int - randomness seed for reproducibility
 
-- [ ] **Output Options**
-  - [ ] Default: regex to stdout
-  - [ ] `--json` - structured output
-  - [ ] `--verbose` - detailed progress/debug info
-  - [ ] `--test` - show validation results
-  - [ ] Exit codes (0=success, 1=failure, 2=timeout)
+- [ ] **Rich Output Formatting**
+  - [ ] Default: clean regex to stdout
+  - [ ] `--json` - structured output with json module
+  - [ ] `--verbose` - rich progress bars and debug info
+  - [ ] `--test` - formatted validation results with rich tables
+  - [ ] Proper exit codes (0=success, 1=failure, 2=timeout)
 
 ### Input/Output (MEDIUM PRIORITY)
-- [ ] **File Processing**
-  - [ ] Read positive examples from text file (one per line)
-  - [ ] Read negative examples from text file
-  - [ ] Input validation and error reporting
-  - [ ] Unicode and encoding handling
+- [ ] **File Processing with Pathlib**
+  - [ ] Read positive examples from text file (one per line) with proper encoding
+  - [ ] Read negative examples from text file with error handling
+  - [ ] Input validation with Pydantic or dataclasses
+  - [ ] Unicode and encoding handling with UTF-8 default
 
-- [ ] **Output Formats**
-  - [ ] Clean regex string output
-  - [ ] JSON format with metadata
-  - [ ] Validation report formatting
-  - [ ] Error message formatting
+- [ ] **Output Formats with Rich**
+  - [ ] Clean regex string output to stdout
+  - [ ] JSON format with metadata using json/dataclasses
+  - [ ] Rich-formatted validation report with tables
+  - [ ] Structured error messages with rich.console
 
 ### Testing Infrastructure (HIGH PRIORITY)
-- [ ] **Unit Tests**
-  - [ ] Simulated annealing algorithm tests
-  - [ ] Pattern mutation operator tests
-  - [ ] Scoring function tests
-  - [ ] CLI argument parsing tests
+- [ ] **Pytest Unit Tests**
+  - [ ] Simulated annealing algorithm tests with fixtures
+  - [ ] Pattern mutation operator tests with parametrize
+  - [ ] Scoring function tests with property-based testing (hypothesis)
+  - [ ] Click CLI argument parsing tests with CliRunner
 
-- [ ] **Integration Tests**
-  - [ ] End-to-end CLI tests
-  - [ ] File input/output tests
+- [ ] **Integration Tests with Pytest**
+  - [ ] End-to-end CLI tests using subprocess/CliRunner
+  - [ ] File input/output tests with temporary files
   - [ ] Example scenario tests (emails, phone numbers, etc.)
-  - [ ] Performance regression tests
+  - [ ] Performance regression tests with pytest-benchmark
 
 ## Phase 2: Enhanced Features
 
