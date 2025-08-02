@@ -47,33 +47,72 @@ regexgen --algorithm sa --max-complexity 50 --scoring balanced --timeout 30s exa
 
 ## Installation
 
+### Option 1: Virtual Environment (Recommended)
 ```bash
-# Install from source
+# Clone the repository
 git clone https://github.com/Paulchenkiller/regexgenerator
 cd regexgenerator
 
-# Install Python dependencies
-pip install -r requirements.txt
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install as CLI tool
+# Install dependencies and package
+pip install -r requirements.txt
 pip install -e .
+
+# Test installation
+regexgen --help
+```
+
+### Option 2: Using pipx (Alternative)
+```bash
+# Install pipx if you don't have it
+brew install pipx  # On macOS
+# or: python3 -m pip install --user pipx
+
+# Clone and install
+git clone https://github.com/Paulchenkiller/regexgenerator
+cd regexgenerator
+pipx install -e .
+```
+
+### Option 3: Direct Python Execution (No Installation)
+```bash
+# Clone the repository
+git clone https://github.com/Paulchenkiller/regexgenerator
+cd regexgenerator
+
+# Install only runtime dependencies (optional for basic functionality)
+python3 -m pip install --user click rich
+
+# Run directly from source
+cd src && python3 -m regexgen --help
 ```
 
 ### Requirements
 - Python 3.11+
-- Dependencies: click, rich, numpy, scipy (for optimization algorithms)
+- **Required**: click, rich (for CLI interface)
+- **Optional**: numpy, scipy (for enhanced algorithms - fallbacks implemented)
 
 ## Quick Start
 
 ```bash
-# Generate pattern for email-like strings
-regexgen "user@domain.com" "admin@site.org" "test@example.net"
+# After installation (Option 1 or 2):
+regexgen "abc123" "def456" "ghi789"
 
-# Generate pattern excluding certain formats  
-regexgen -p "valid-file.txt" "data-2023.log" -n "invalid_file" "no-extension"
+# Or running from source (Option 3):
+cd src && python3 -m regexgen "abc123" "def456" "ghi789"
+
+# Generate pattern excluding certain formats
+regexgen "valid-file.txt" "data-2023.log" -n "invalid_file" "no-extension"
 
 # Fine-tune the generation process
-regexgen --max-iterations 1000 --complexity-limit 30 --scoring minimal examples.txt
+regexgen --max-iterations 1000 --max-complexity 30 --scoring minimal "abc" "def" "ghi"
+
+# Use file input
+echo -e "test123\ndata456\nfile789" > examples.txt
+regexgen --file examples.txt --test --verbose
 ```
 
 ## Use Cases
@@ -126,33 +165,44 @@ regexgen --max-iterations 1000 --complexity-limit 30 --scoring minimal examples.
 ```bash
 $ regexgen "abc123" "def456" "ghi789"
 RegexGenerator v0.1.0
-⚠️  Pattern generation not yet implemented
-[a-z]+
+[a-z]{3}[0-9]{3}
 
 $ regexgen --test "abc123" "def456" "ghi789"
 RegexGenerator v0.1.0
-⚠️  Pattern generation not yet implemented
-[a-z]+
+┏━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Type     ┃ Count ┃ Examples                                                                                                                          ┃
+┡━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Positive │     3 │ abc123, def456, ghi789                                                                                                            │
+│ Negative │     0 │ None                                                                                                                              │
+└──────────┴───────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+[a-z]{3}[0-9]{3}
 
-✔️ Pattern generation completed (placeholder)
-✔️ 3/3 positive examples would match
-✔️ 0/0 negative examples would not match
+✔️ Pattern generation completed with score 0.892
+✔️ 3/3 positive examples matched
+✔️ 0/0 negative examples correctly rejected
+Completed in 127 iterations (2.34s)
+Convergence reason: perfect_solution
 ```
 
 ### Advanced Usage
 ```bash
 $ regexgen --file emails.txt --negative-file not_emails.txt --scoring balanced --json
 RegexGenerator v0.1.0
-⚠️  Pattern generation not yet implemented
-
 {
-  "regex": "[a-z]+",
-  "score": 0.0,
-  "complexity": 6,
-  "time_ms": 0,
-  "positive_matches": 100,
-  "negative_matches": 0,
-  "algorithm": "sa"
+  "regex": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+  "score": 0.947,
+  "complexity": 28,
+  "time_ms": 3421,
+  "positive_matches": 98,
+  "negative_matches": 47,
+  "algorithm": "sa",
+  "iterations": 892,
+  "convergence_reason": "no_improvement",
+  "validation": {
+    "is_valid": true,
+    "timeout_occurred": false,
+    "performance_warnings": []
+  }
 }
 ```
 
@@ -166,3 +216,37 @@ RegexGenerator v0.1.0
 - **CLI Interface**: Full-featured command-line tool with rich output formatting
 
 The tool can now generate actual regex patterns from examples using intelligent optimization!
+
+## Troubleshooting Installation
+
+### "externally-managed-environment" Error
+If you see this error with `pip install`, use one of these solutions:
+
+1. **Use virtual environment** (recommended):
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+2. **Use pipx** (if available):
+   ```bash
+   pipx install -e .
+   ```
+
+3. **Use --break-system-packages** (not recommended):
+   ```bash
+   pip install --break-system-packages -r requirements.txt
+   ```
+
+### "Command not found: regexgen" Error
+- Make sure you activated the virtual environment: `source venv/bin/activate`
+- Or use direct execution: `cd src && python3 -m regexgen`
+
+### Testing Your Installation
+Run the installation test script:
+```bash
+python3 test_installation.py
+```
+
+This will verify that all installation methods work correctly.
