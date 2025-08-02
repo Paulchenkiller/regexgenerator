@@ -11,12 +11,13 @@ RegexGenerator is a CLI tool that automatically generates optimal regular expres
 ### Language Selection
 - **Status**: ✅ **DECIDED - Python 3.11+**
 - **Rationale**: Best balance of algorithm libraries, development speed, and future ML integration
-- **Key Dependencies**: click (CLI), rich (output), numpy/scipy (algorithms), regex (advanced patterns)
+- **Key Dependencies**: click (CLI), rich (output), numpy/scipy (algorithms - optional), regex (advanced patterns)
+- **Implementation Status**: ✅ **COMPLETE - Core functionality implemented**
 
 ### Core Algorithm Strategy
-- **Phase 1**: Simulated Annealing (easier to implement, good results)
-- **Phase 2**: Genetic Algorithm (more thorough exploration)
-- **Future**: Support algorithm selection via CLI flag
+- **Phase 1**: ✅ Simulated Annealing (implemented with configurable cooling schedules)
+- **Phase 2**: Genetic Algorithm (future enhancement) 
+- **Status**: CLI flag support implemented, SA fully functional
 
 ### Input/Output Design
 - **Input**: Command-line args or text files (one example per line)

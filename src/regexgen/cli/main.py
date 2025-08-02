@@ -177,11 +177,10 @@ def cli(
             console.print(f"[dim]Seed: {seed}[/dim]")
         console.print()
     
-    # TODO: Implement actual pattern generation
-    # For now, show a placeholder
-    if not quiet:
-        console.print("[yellow]⚠️  Pattern generation not yet implemented[/yellow]")
-        console.print("[dim]This is a placeholder implementation[/dim]")
+    # Import required components
+    from regexgen.algorithms.simulated_annealing import SimulatedAnnealing, SAConfig, CoolingSchedule
+    from regexgen.scoring.fitness import MultiCriteriaScorer, ScoringMode
+    from regexgen.validation.validator import PatternValidator
     
     # Show input summary
     if test or verbose:
@@ -203,29 +202,83 @@ def cli(
         
         console.print(table)
     
-    # Placeholder output
-    placeholder_pattern = r"[a-z]+"
+    # Configure optimization
+    scoring_mode = ScoringMode(scoring)
+    sa_config = SAConfig(
+        max_iterations=max_iterations,
+        max_complexity=max_complexity,
+        random_seed=seed,
+        timeout_seconds=timeout
+    )
+    
+    # Create components
+    fitness_scorer = MultiCriteriaScorer(mode=scoring_mode, timeout_seconds=1.0)
+    optimizer = SimulatedAnnealing(config=sa_config)
+    validator = PatternValidator(timeout_seconds=2.0)
+    
+    if verbose:
+        console.print("[dim]Starting pattern optimization...[/dim]")
+        
+        with console.status("[bold green]Optimizing pattern...") as status:
+            # Run optimization
+            result = optimizer.optimize(all_positives, all_negatives, fitness_scorer)
+            
+            if verbose:
+                status.update("[bold green]Validating result...")
+                validation = validator.validate(result.best_pattern, all_positives, all_negatives)
+    else:
+        # Run optimization without progress indicator
+        result = optimizer.optimize(all_positives, all_negatives, fitness_scorer)
+        validation = validator.validate(result.best_pattern, all_positives, all_negatives)
+    
+    # Generate output
+    generated_pattern = result.best_pattern.to_regex()
     
     if output_json:
         import json
-        result = {
-            "regex": placeholder_pattern,
-            "score": 0.0,
-            "complexity": len(placeholder_pattern),
-            "time_ms": 0,
-            "positive_matches": len(all_positives),
-            "negative_matches": 0,
-            "algorithm": algorithm
+        output_data = {
+            "regex": generated_pattern,
+            "score": float(result.best_fitness.total_score),
+            "complexity": result.best_pattern.complexity(),
+            "time_ms": int(result.time_seconds * 1000),
+            "positive_matches": result.best_fitness.positive_matches,
+            "negative_matches": result.best_fitness.negative_matches,
+            "algorithm": algorithm,
+            "iterations": result.iterations,
+            "convergence_reason": result.convergence_reason,
+            "validation": {
+                "is_valid": validation.is_valid,
+                "timeout_occurred": validation.timeout_occurred,
+                "performance_warnings": validation.performance_warnings
+            }
         }
-        console.print(json.dumps(result, indent=2))
+        console.print(json.dumps(output_data, indent=2))
     else:
-        console.print(placeholder_pattern)
+        console.print(generated_pattern)
     
     if test:
         console.print()
-        console.print("[green]✔️[/green] Pattern generation completed (placeholder)")
-        console.print(f"[green]✔️[/green] {len(all_positives)}/{len(all_positives)} positive examples would match")
-        console.print(f"[green]✔️[/green] {len(all_negatives)}/{len(all_negatives)} negative examples would not match")
+        
+        # Show optimization results
+        if result.best_fitness.total_score > 0.9:
+            console.print(f"[green]✔️[/green] Pattern generation completed with score {result.best_fitness.total_score:.3f}")
+        elif result.best_fitness.total_score > 0.7:
+            console.print(f"[yellow]⚠️[/yellow] Pattern generation completed with score {result.best_fitness.total_score:.3f}")
+        else:
+            console.print(f"[red]❌[/red] Pattern generation completed with low score {result.best_fitness.total_score:.3f}")
+        
+        console.print(f"[green]✔️[/green] {result.best_fitness.positive_matches}/{len(all_positives)} positive examples matched")
+        console.print(f"[green]✔️[/green] {result.best_fitness.negative_matches}/{len(all_negatives)} negative examples correctly rejected")
+        
+        # Show performance info
+        console.print(f"[dim]Completed in {result.iterations} iterations ({result.time_seconds:.2f}s)[/dim]")
+        console.print(f"[dim]Convergence reason: {result.convergence_reason}[/dim]")
+        
+        # Show validation warnings if any
+        if validation.performance_warnings:
+            console.print("[yellow]Performance warnings:[/yellow]")
+            for warning in validation.performance_warnings:
+                console.print(f"  [yellow]⚠️[/yellow] {warning}")
 
 
 if __name__ == "__main__":

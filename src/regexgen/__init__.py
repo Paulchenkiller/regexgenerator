@@ -4,13 +4,15 @@ __version__ = "0.1.0"
 __author__ = "RegexGenerator Team"
 __email__ = "noreply@regexgenerator.dev"
 
-# Import main components when they're implemented
-# from regexgen.patterns.ast import PatternAST
-# from regexgen.algorithms.simulated_annealing import SimulatedAnnealing
-# from regexgen.scoring.fitness import FitnessScorer
+# Import main components
+from regexgen.patterns.ast import PatternAST
+from regexgen.algorithms.simulated_annealing import SimulatedAnnealing
+from regexgen.scoring.fitness import MultiCriteriaScorer
+from regexgen.validation.validator import PatternValidator
 
 __all__ = [
-    # "PatternAST",
-    # "SimulatedAnnealing", 
-    # "FitnessScorer",
+    "PatternAST",
+    "SimulatedAnnealing", 
+    "MultiCriteriaScorer",
+    "PatternValidator",
 ]
