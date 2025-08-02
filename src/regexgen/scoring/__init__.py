@@ -1,0 +1,1 @@
+"""Scoring and fitness functions for pattern evaluation."""

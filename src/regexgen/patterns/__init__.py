@@ -1,0 +1,1 @@
+"""Pattern representation and manipulation."""

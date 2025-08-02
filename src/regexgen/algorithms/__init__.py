@@ -1,0 +1,1 @@
+"""Optimization algorithms for regex pattern generation."""
