@@ -25,12 +25,12 @@ class CoolingSchedule(Enum):
 @dataclass
 class SAConfig:
     """Configuration for Simulated Annealing algorithm."""
-    initial_temperature: float = 100.0
+    initial_temperature: float = 10.0  # Lower for more focused search
     final_temperature: float = 0.01
     max_iterations: int = 1000
-    max_no_improvement: int = 100
-    cooling_schedule: CoolingSchedule = CoolingSchedule.EXPONENTIAL
-    mutation_rate: float = 0.1
+    max_no_improvement: int = 150  # Allow more patience
+    cooling_schedule: CoolingSchedule = CoolingSchedule.ADAPTIVE  # Better convergence
+    mutation_rate: float = 0.15  # Slightly higher mutation rate
     max_complexity: int = 50
     random_seed: Optional[int] = None
     timeout_seconds: Optional[float] = None
@@ -132,7 +132,8 @@ class SimulatedAnnealing:
         # Initialize current solution
         if initial_pattern is None:
             current_pattern = self.mutator.generate_random_pattern(
-                max_complexity=self.config.max_complexity // 2
+                max_complexity=self.config.max_complexity // 2,
+                examples=positive_examples
             )
         else:
             current_pattern = initial_pattern.clone()

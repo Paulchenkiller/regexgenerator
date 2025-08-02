@@ -327,11 +327,72 @@ class PatternMutator:
         
         return nodes
     
-    def generate_random_pattern(self, max_complexity: int = 20) -> PatternAST:
-        """Generate a completely random pattern."""
+    def generate_random_pattern(self, max_complexity: int = 20, examples: List[str] = None) -> PatternAST:
+        """Generate a random pattern, optionally guided by examples."""
+        if examples:
+            return self._generate_example_guided_pattern(examples, max_complexity)
+        
         complexity_budget = max_complexity
         root = self._generate_random_node(complexity_budget)
         return PatternAST(root)
+    
+    def _generate_example_guided_pattern(self, examples: List[str], max_complexity: int) -> PatternAST:
+        """Generate a pattern guided by the provided examples."""
+        from regexgen.patterns.analysis import PatternAnalyzer
+        
+        analyzer = PatternAnalyzer()
+        analysis = analyzer.analyze_examples(examples)
+        
+        # Try to generate a domain-specific pattern first
+        if analysis.pattern_type != 'mixed':
+            try:
+                return analyzer.generate_initial_pattern(analysis)
+            except:
+                pass  # Fall back to structure-based generation
+        
+        # Generate based on structure analysis
+        if analysis.detected_structure:
+            return self._generate_from_structure(analysis, max_complexity)
+        
+        # Fall back to random generation
+        return PatternAST(self._generate_random_node(max_complexity))
+    
+    def _generate_from_structure(self, analysis, max_complexity: int) -> PatternAST:
+        """Generate pattern from structural analysis."""
+        from regexgen.patterns.analysis import PatternAnalysis
+        
+        if not analysis.detected_structure:
+            return PatternAST(self._generate_random_node(max_complexity))
+        
+        # Build components based on structure
+        components = []
+        
+        for char_type in analysis.detected_structure[:min(10, len(analysis.detected_structure))]:
+            if char_type == 'digit':
+                components.append(CharacterClassNode(characters={'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}))
+            elif char_type == 'lower':
+                components.append(CharacterClassNode(characters=set(string.ascii_lowercase)))
+            elif char_type == 'upper':
+                components.append(CharacterClassNode(characters=set(string.ascii_uppercase)))
+            elif char_type == 'alpha':
+                components.append(CharacterClassNode(characters=set(string.ascii_letters)))
+            else:
+                components.append(WildcardNode())
+        
+        if not components:
+            return PatternAST(self._generate_random_node(max_complexity))
+        
+        # For now, create alternation if multiple components, or single component
+        if len(components) == 1:
+            return PatternAST(components[0])
+        else:
+            # Create a quantified pattern of the first component
+            root = QuantifierNode(
+                child=components[0],
+                min_count=analysis.length_range[0] if hasattr(analysis, 'length_range') else 1,
+                max_count=analysis.length_range[1] if hasattr(analysis, 'length_range') and analysis.length_range[1] < 20 else None
+            )
+            return PatternAST(root)
     
     def _generate_random_node(self, complexity_budget: int) -> PatternNode:
         """Generate a random pattern node within complexity budget."""

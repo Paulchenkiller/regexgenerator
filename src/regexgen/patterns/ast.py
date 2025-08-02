@@ -269,13 +269,57 @@ class PatternAST:
     @classmethod
     def from_string(cls, pattern: str) -> 'PatternAST':
         """Create a PatternAST from a regex string (simplified parser)."""
-        # This is a very basic implementation - a full parser would be more complex
         if not pattern:
             return cls(LiteralNode(""))
         
-        # For now, just wrap the entire pattern as a literal
-        # TODO: Implement proper regex parsing
-        return cls(LiteralNode(pattern))
+        # Basic parsing for common patterns
+        try:
+            # Handle simple character classes
+            if pattern.startswith('[') and pattern.endswith(']'):
+                inner = pattern[1:-1]
+                if inner == '0-9' or inner == 'd':
+                    return cls(CharacterClassNode(characters=set('0123456789')))
+                elif inner == 'a-z':
+                    return cls(CharacterClassNode(characters=set('abcdefghijklmnopqrstuvwxyz')))
+                elif inner == 'A-Z':
+                    return cls(CharacterClassNode(characters=set('ABCDEFGHIJKLMNOPQRSTUVWXYZ')))
+                elif inner == 'a-zA-Z':
+                    chars = set('abcdefghijklmnopqrstuvwxyz') | set('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+                    return cls(CharacterClassNode(characters=chars))
+                else:
+                    # Parse individual characters
+                    chars = set(inner.replace('-', ''))  # Simple handling
+                    return cls(CharacterClassNode(characters=chars))
+            
+            # Handle \\d shorthand
+            if pattern == '\\d+':
+                digit_class = CharacterClassNode(characters=set('0123456789'))
+                quantifier = QuantifierNode(child=digit_class, min_count=1, max_count=None)
+                return cls(quantifier)
+            
+            # Handle simple quantifiers
+            if pattern.endswith('+'):
+                base_pattern = pattern[:-1]
+                base_ast = cls.from_string(base_pattern)
+                quantifier = QuantifierNode(child=base_ast.root, min_count=1, max_count=None)
+                return cls(quantifier)
+            
+            if pattern.endswith('*'):
+                base_pattern = pattern[:-1]
+                base_ast = cls.from_string(base_pattern)
+                quantifier = QuantifierNode(child=base_ast.root, min_count=0, max_count=None)
+                return cls(quantifier)
+            
+            # Handle wildcard
+            if pattern == '.':
+                return cls(WildcardNode())
+            
+            # Handle simple literals (escape special characters)
+            return cls(LiteralNode(pattern))
+            
+        except:
+            # If parsing fails, fall back to literal
+            return cls(LiteralNode(pattern))
     
     def __str__(self) -> str:
         return self.to_regex()

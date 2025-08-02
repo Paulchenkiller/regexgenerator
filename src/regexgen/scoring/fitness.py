@@ -179,7 +179,7 @@ class MultiCriteriaScorer(FitnessScorer):
             if not compiled_pattern.fullmatch(example):
                 negative_matches += 1
         
-        # Calculate correctness score
+        # Calculate correctness score with heavy emphasis on positive matches
         total_positive = len(positive_examples)
         total_negative = len(negative_examples)
         
@@ -191,8 +191,14 @@ class MultiCriteriaScorer(FitnessScorer):
             score = positive_matches / total_positive
         else:
             positive_ratio = positive_matches / total_positive
-            negative_ratio = negative_matches / total_negative
-            score = (positive_ratio + negative_ratio) / 2
+            negative_ratio = negative_matches / total_negative if total_negative > 0 else 1.0
+            
+            # Weight positive matches much more heavily (80% vs 20%)
+            score = 0.8 * positive_ratio + 0.2 * negative_ratio
+            
+            # If no positive matches, severely penalize
+            if positive_matches == 0:
+                score *= 0.1
         
         return {
             'score': score,
